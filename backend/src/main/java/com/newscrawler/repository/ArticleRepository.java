@@ -56,4 +56,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     // 전체 카테고리 목록
     @Query("SELECT DISTINCT a.category FROM Article a ORDER BY a.category")
     List<String> findDistinctCategories();
+
+    // 데이터 정리용 메서드
+    long deleteByCreatedAtBefore(LocalDateTime cutoffDate);
+    
+    long countByCreatedAtAfter(LocalDateTime date);
 }
