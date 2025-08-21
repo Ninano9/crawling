@@ -20,39 +20,38 @@ public class NewsCrawler {
     private static final int TIMEOUT = 30000;
 
     /**
-     * 네이버 뉴스 크롤링
+     * 네이버 뉴스 크롤링 (RSS 사용)
      */
     public List<Article> crawlNaverNews() {
         List<Article> articles = new ArrayList<>();
         try {
             log.info("네이버 뉴스 크롤링 시작");
             
-            // IT/과학 섹션
-            String url = "https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1=105";
+            // 네이버 뉴스 RSS 피드 사용
+            String url = "https://rss.news.naver.com/services/rss/AllHeadLines.xml";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
+                    .parser(org.jsoup.parser.Parser.xmlParser())
                     .get();
 
-            Elements newsItems = doc.select(".cluster_body .cluster_text");
+            Elements items = doc.select("item");
             
-            for (Element item : newsItems) {
+            for (Element item : items) {
                 try {
-                    Element titleElement = item.selectFirst("a.cluster_text_headline");
-                    Element summaryElement = item.selectFirst(".cluster_text_lede");
+                    String title = item.selectFirst("title").text().trim();
+                    String link = item.selectFirst("link").text().trim();
+                    String description = item.selectFirst("description") != null ? 
+                            item.selectFirst("description").text().trim() : "";
                     
-                    if (titleElement != null) {
-                        String title = titleElement.text().trim();
-                        String link = "https://news.naver.com" + titleElement.attr("href");
-                        String summary = summaryElement != null ? summaryElement.text().trim() : "";
-                        
+                    if (!title.isEmpty()) {
                         Article article = Article.builder()
                                 .title(title)
-                                .summary(summary.length() > 300 ? summary.substring(0, 300) + "..." : summary)
+                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
                                 .source("네이버 뉴스")
-                                .category("IT/과학")
+                                .category("종합")
                                 .link(link)
-                                .imageUrl(getDefaultImageUrl("IT"))
+                                .imageUrl(getDefaultImageUrl("뉴스"))
                                 .publishedAt(LocalDateTime.now())
                                 .build();
                         
@@ -75,40 +74,37 @@ public class NewsCrawler {
     }
 
     /**
-     * 다음 뉴스 크롤링
+     * YTN 뉴스 크롤링 (RSS 사용)
      */
     public List<Article> crawlDaumNews() {
         List<Article> articles = new ArrayList<>();
         try {
-            log.info("다음 뉴스 크롤링 시작");
+            log.info("YTN 뉴스 크롤링 시작");
             
-            String url = "https://news.daum.net/breakingnews/digital";
+            String url = "https://www.ytn.co.kr/rss/top.xml";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
+                    .parser(org.jsoup.parser.Parser.xmlParser())
                     .get();
 
-            Elements newsItems = doc.select(".list_news2 .item_news");
+            Elements items = doc.select("item");
             
-            for (Element item : newsItems) {
+            for (Element item : items) {
                 try {
-                    Element titleElement = item.selectFirst(".link_txt");
-                    Element summaryElement = item.selectFirst(".desc");
-                    Element imageElement = item.selectFirst(".thumb_g img");
+                    String title = item.selectFirst("title").text().trim();
+                    String link = item.selectFirst("link").text().trim();
+                    String description = item.selectFirst("description") != null ? 
+                            item.selectFirst("description").text().trim() : "";
                     
-                    if (titleElement != null) {
-                        String title = titleElement.text().trim();
-                        String link = titleElement.attr("href");
-                        String summary = summaryElement != null ? summaryElement.text().trim() : "";
-                        String imageUrl = imageElement != null ? imageElement.attr("src") : getDefaultImageUrl("디지털");
-                        
+                    if (!title.isEmpty()) {
                         Article article = Article.builder()
                                 .title(title)
-                                .summary(summary.length() > 300 ? summary.substring(0, 300) + "..." : summary)
-                                .source("다음 뉴스")
-                                .category("디지털")
+                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
+                                .source("YTN 뉴스")
+                                .category("종합")
                                 .link(link)
-                                .imageUrl(imageUrl)
+                                .imageUrl(getDefaultImageUrl("뉴스"))
                                 .publishedAt(LocalDateTime.now())
                                 .build();
                         
@@ -117,14 +113,14 @@ public class NewsCrawler {
                         if (articles.size() >= 10) break;
                     }
                 } catch (Exception e) {
-                    log.warn("다음 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
+                    log.warn("YTN 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
                 }
             }
             
-            log.info("다음 뉴스 크롤링 완료: {}개 기사", articles.size());
+            log.info("YTN 뉴스 크롤링 완료: {}개 기사", articles.size());
             
         } catch (Exception e) {
-            log.error("다음 뉴스 크롤링 실패: {}", e.getMessage());
+            log.error("YTN 뉴스 크롤링 실패: {}", e.getMessage());
         }
         
         return articles;
@@ -239,36 +235,37 @@ public class NewsCrawler {
     }
 
     /**
-     * 스포츠 뉴스 크롤링 (네이버 스포츠)
+     * SBS 뉴스 크롤링 (RSS 사용)
      */
     public List<Article> crawlSportsNews() {
         List<Article> articles = new ArrayList<>();
         try {
-            log.info("스포츠 뉴스 크롤링 시작");
+            log.info("SBS 뉴스 크롤링 시작");
             
-            String url = "https://sports.news.naver.com/";
+            String url = "https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=01";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
+                    .parser(org.jsoup.parser.Parser.xmlParser())
                     .get();
 
-            Elements newsItems = doc.select(".home_news .news_list li");
+            Elements items = doc.select("item");
             
-            for (Element item : newsItems) {
+            for (Element item : items) {
                 try {
-                    Element titleElement = item.selectFirst("a");
+                    String title = item.selectFirst("title").text().trim();
+                    String link = item.selectFirst("link").text().trim();
+                    String description = item.selectFirst("description") != null ? 
+                            item.selectFirst("description").text().trim() : "";
                     
-                    if (titleElement != null) {
-                        String title = titleElement.text().trim();
-                        String link = titleElement.attr("abs:href");
-                        
+                    if (!title.isEmpty()) {
                         Article article = Article.builder()
                                 .title(title)
-                                .summary("네이버 스포츠 뉴스")
-                                .source("네이버 스포츠")
-                                .category("스포츠")
+                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
+                                .source("SBS 뉴스")
+                                .category("종합")
                                 .link(link)
-                                .imageUrl(getDefaultImageUrl("스포츠"))
+                                .imageUrl(getDefaultImageUrl("뉴스"))
                                 .publishedAt(LocalDateTime.now())
                                 .build();
                         
@@ -277,14 +274,14 @@ public class NewsCrawler {
                         if (articles.size() >= 10) break;
                     }
                 } catch (Exception e) {
-                    log.warn("스포츠 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
+                    log.warn("SBS 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
                 }
             }
             
-            log.info("스포츠 뉴스 크롤링 완료: {}개 기사", articles.size());
+            log.info("SBS 뉴스 크롤링 완료: {}개 기사", articles.size());
             
         } catch (Exception e) {
-            log.error("스포츠 뉴스 크롤링 실패: {}", e.getMessage());
+            log.error("SBS 뉴스 크롤링 실패: {}", e.getMessage());
         }
         
         return articles;
@@ -295,10 +292,11 @@ public class NewsCrawler {
      */
     private String getDefaultImageUrl(String category) {
         return switch (category.toLowerCase()) {
-            case "it", "디지털" -> "https://via.placeholder.com/300x200/0066CC/FFFFFF?text=IT+News";
+            case "it", "디지털" -> "https://via.placeholder.com/300x200/0066CC/FFFFFF?text=IT+뉴스";
             case "글로벌" -> "https://via.placeholder.com/300x200/009900/FFFFFF?text=Global+News";
-            case "스포츠" -> "https://via.placeholder.com/300x200/FF6600/FFFFFF?text=Sports+News";
-            default -> "https://via.placeholder.com/300x200/666666/FFFFFF?text=News";
+            case "스포츠" -> "https://via.placeholder.com/300x200/FF6600/FFFFFF?text=스포츠+뉴스";
+            case "뉴스", "종합" -> "https://via.placeholder.com/300x200/CC3333/FFFFFF?text=한국+뉴스";
+            default -> "https://via.placeholder.com/300x200/666666/FFFFFF?text=뉴스";
         };
     }
 }
