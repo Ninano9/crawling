@@ -63,9 +63,9 @@ spring:
     activate:
       on-profile: production
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL:${DATABASE_URL}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -73,7 +73,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # PostgreSQL dialect은 자동 감지되므로 명시하지 않음
   h2:
     console:
       enabled: false
