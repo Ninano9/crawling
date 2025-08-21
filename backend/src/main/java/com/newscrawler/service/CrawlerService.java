@@ -1,0 +1,135 @@
+package com.newscrawler.service;
+
+import com.newscrawler.config.CrawlerConfig;
+import com.newscrawler.crawler.NewsCrawler;
+import com.newscrawler.entity.Article;
+import com.newscrawler.repository.ArticleRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class CrawlerService {
+
+    private final NewsCrawler newsCrawler;
+    private final ArticleRepository articleRepository;
+    private final CrawlerConfig crawlerConfig;
+    
+    private final Executor executor = Executors.newFixedThreadPool(5);
+
+    /**
+     * 매일 오전 7시에 모든 사이트 크롤링 실행
+     */
+    @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Seoul")
+    public void scheduledCrawling() {
+        if (!crawlerConfig.isEnabled()) {
+            log.info("크롤링이 비활성화되어 있습니다.");
+            return;
+        }
+        
+        log.info("===== 일간 뉴스 크롤링 시작 =====");
+        crawlAllSites();
+        log.info("===== 일간 뉴스 크롤링 완료 =====");
+    }
+
+    /**
+     * 수동 크롤링 실행
+     */
+    @Transactional
+    public int crawlAllSites() {
+        List<CompletableFuture<List<Article>>> futures = new ArrayList<>();
+
+        // 5개 사이트 병렬 크롤링
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlNaverNews, executor));
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlDaumNews, executor));
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlZDNetKorea, executor));
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlBBCNews, executor));
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlSportsNews, executor));
+
+        // 모든 크롤링 완료 대기
+        List<Article> allArticles = new ArrayList<>();
+        
+        for (CompletableFuture<List<Article>> future : futures) {
+            try {
+                List<Article> articles = future.get();
+                allArticles.addAll(articles);
+            } catch (Exception e) {
+                log.error("크롤링 중 오류 발생: {}", e.getMessage());
+            }
+        }
+
+        // 중복 제거 및 저장
+        int savedCount = 0;
+        for (Article article : allArticles) {
+            if (!articleRepository.existsByTitleAndSource(article.getTitle(), article.getSource())) {
+                try {
+                    articleRepository.save(article);
+                    savedCount++;
+                } catch (Exception e) {
+                    log.warn("기사 저장 실패 - 제목: {}, 오류: {}", article.getTitle(), e.getMessage());
+                }
+            } else {
+                log.debug("중복 기사 건너뛰기: {}", article.getTitle());
+            }
+        }
+
+        log.info("크롤링 완료 - 총 {}개 기사 중 {}개 새로 저장", allArticles.size(), savedCount);
+        return savedCount;
+    }
+
+    /**
+     * 특정 소스만 크롤링
+     */
+    @Transactional
+    public List<Article> crawlSpecificSource(String source) {
+        List<Article> articles = new ArrayList<>();
+        
+        switch (source.toLowerCase()) {
+            case "naver", "네이버" -> articles = newsCrawler.crawlNaverNews();
+            case "daum", "다음" -> articles = newsCrawler.crawlDaumNews();
+            case "zdnet" -> articles = newsCrawler.crawlZDNetKorea();
+            case "bbc" -> articles = newsCrawler.crawlBBCNews();
+            case "sports", "스포츠" -> articles = newsCrawler.crawlSportsNews();
+            default -> {
+                log.warn("지원하지 않는 소스: {}", source);
+                return articles;
+            }
+        }
+
+        // 중복 체크 후 저장
+        int savedCount = 0;
+        for (Article article : articles) {
+            if (!articleRepository.existsByTitleAndSource(article.getTitle(), article.getSource())) {
+                articleRepository.save(article);
+                savedCount++;
+            }
+        }
+
+        log.info("{} 크롤링 완료 - 총 {}개 기사 중 {}개 새로 저장", source, articles.size(), savedCount);
+        return articles;
+    }
+
+    /**
+     * 크롤링 통계 조회
+     */
+    public String getCrawlingStats() {
+        long totalArticles = articleRepository.count();
+        List<Article> todaysArticles = articleRepository.findTodaysArticles();
+        List<String> sources = articleRepository.findDistinctSources();
+        
+        return String.format(
+            "전체 기사: %d개, 오늘 수집: %d개, 수집 소스: %d개 (%s)",
+            totalArticles, todaysArticles.size(), sources.size(), String.join(", ", sources)
+        );
+    }
+}

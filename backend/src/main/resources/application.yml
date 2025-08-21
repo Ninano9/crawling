@@ -1,0 +1,102 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: news-crawler-backend
+  
+  # 프로파일별 설정
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  
+  # 데이터베이스 설정
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:mem:testdb}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:create-drop}
+    show-sql: ${SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
+        format_sql: true
+  
+  # H2 콘솔 (로컬 개발용)
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:true}
+      path: /h2-console
+
+# 로깅 설정
+logging:
+  level:
+    com.newscrawler: ${LOG_LEVEL:DEBUG}
+    org.springframework.web: ${WEB_LOG_LEVEL:INFO}
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:DEBUG}
+
+# CORS 설정
+cors:
+  allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+
+# 크롤링 설정
+crawler:
+  enabled: ${CRAWLER_ENABLED:true}
+  max-articles-per-site: ${MAX_ARTICLES_PER_SITE:10}
+  connection-timeout: ${CONNECTION_TIMEOUT:30000}
+  user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+
+---
+# Production 프로파일 (Render)
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  h2:
+    console:
+      enabled: false
+
+logging:
+  level:
+    com.newscrawler: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+
+cors:
+  allowed-origins: ${FRONTEND_URL:https://your-frontend-url.onrender.com}
+
+---
+# Development 프로파일
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/newscrawler
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
