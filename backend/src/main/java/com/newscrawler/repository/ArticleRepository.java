@@ -15,11 +15,11 @@ import java.util.List;
 public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     // 오늘 수집된 기사 조회
-    @Query("SELECT a FROM Article a WHERE DATE(a.createdAt) = CURRENT_DATE ORDER BY a.publishedAt DESC")
+    @Query("SELECT a FROM Article a WHERE CAST(a.createdAt AS date) = CURRENT_DATE ORDER BY a.publishedAt DESC")
     List<Article> findTodaysArticles();
 
     // 오늘 수집된 기사 페이징
-    @Query("SELECT a FROM Article a WHERE DATE(a.createdAt) = CURRENT_DATE ORDER BY a.publishedAt DESC")
+    @Query("SELECT a FROM Article a WHERE CAST(a.createdAt AS date) = CURRENT_DATE ORDER BY a.publishedAt DESC")
     Page<Article> findTodaysArticles(Pageable pageable);
 
     // 카테고리별 기사 조회
