@@ -96,4 +96,30 @@ public class CrawlerController {
                 "message", "크롤러가 정상 동작 중입니다."
         ));
     }
+
+    /**
+     * 특정 출처 기사 삭제
+     * DELETE /api/crawler/source/{source}
+     */
+    @DeleteMapping("/source/{source}")
+    public ResponseEntity<Map<String, Object>> deleteArticlesBySource(@PathVariable String source) {
+        log.info("특정 출처 기사 삭제 요청 - source: {}", source);
+        
+        try {
+            long deletedCount = crawlerService.deleteArticlesBySource(source);
+            
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", source + " 출처의 기사가 삭제되었습니다.",
+                    "deletedCount", deletedCount
+            ));
+        } catch (Exception e) {
+            log.error("{} 출처 기사 삭제 실패: {}", source, e.getMessage());
+            
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", source + " 출처 기사 삭제 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
 }

@@ -88,9 +88,9 @@ public class NewsCrawler {
     public List<Article> crawlDaumNews() {
         List<Article> articles = new ArrayList<>();
         try {
-            log.info("오마이뉴스 크롤링 시작");
+            log.info("중앙일보 크롤링 시작");
             
-            String url = "http://www.ohmynews.com/rss/index.xml";
+            String url = "https://news.joins.com/RSS/total.xml";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
@@ -119,7 +119,7 @@ public class NewsCrawler {
                         Article article = Article.builder()
                                 .title(title)
                                 .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
-                                .source("오마이뉴스")
+                                .source("중앙일보")
                                 .category("종합")
                                 .link(link)
                                 .imageUrl(imageUrl)
@@ -135,10 +135,10 @@ public class NewsCrawler {
                 }
             }
             
-            log.info("오마이뉴스 크롤링 완료: {}개 기사", articles.size());
+            log.info("중앙일보 크롤링 완료: {}개 기사", articles.size());
             
         } catch (Exception e) {
-            log.error("오마이뉴스 크롤링 실패: {}", e.getMessage());
+            log.error("중앙일보 크롤링 실패: {}", e.getMessage());
         }
         
         return articles;

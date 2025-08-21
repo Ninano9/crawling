@@ -130,4 +130,19 @@ public class CrawlerService {
             totalArticles, todaysArticles.size(), sources.size(), String.join(", ", sources)
         );
     }
+
+    /**
+     * 특정 출처 기사 삭제
+     */
+    @Transactional
+    public long deleteArticlesBySource(String source) {
+        try {
+            long deletedCount = articleRepository.deleteBySource(source);
+            log.info("{} 출처 기사 삭제 완료: {}개", source, deletedCount);
+            return deletedCount;
+        } catch (Exception e) {
+            log.error("{} 출처 기사 삭제 중 오류: {}", source, e.getMessage());
+            throw e;
+        }
+    }
 }

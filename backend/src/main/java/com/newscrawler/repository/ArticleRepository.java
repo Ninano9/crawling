@@ -61,4 +61,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     long deleteByCreatedAtBefore(LocalDateTime cutoffDate);
     
     long countByCreatedAtAfter(LocalDateTime date);
+    
+    // 특정 출처 기사 삭제
+    long deleteBySource(String source);
 }
