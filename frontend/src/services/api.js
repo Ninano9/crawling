@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // API 기본 설정
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://news-crawler-backend.onrender.com'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
