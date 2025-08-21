@@ -27,8 +27,8 @@ public class NewsCrawler {
         try {
             log.info("네이버 뉴스 크롤링 시작");
             
-            // 네이버 뉴스 RSS 피드 사용
-            String url = "https://rss.news.naver.com/services/rss/AllHeadLines.xml";
+            // 네이버 뉴스 RSS 피드 사용 (헤드라인)
+            String url = "https://rss.news.naver.com/services/rss/AllHeadLines_Politics.xml";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
@@ -90,7 +90,7 @@ public class NewsCrawler {
         try {
             log.info("YTN 뉴스 크롤링 시작");
             
-            String url = "https://www.ytn.co.kr/rss/top.xml";
+            String url = "https://www.ytn.co.kr/_rss/news_major.xml";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
@@ -145,38 +145,44 @@ public class NewsCrawler {
     }
 
     /**
-     * ZDNet 코리아 크롤링 (IT 전문)
+     * MBC 뉴스 크롤링 (RSS 사용)
      */
     public List<Article> crawlZDNetKorea() {
         List<Article> articles = new ArrayList<>();
         try {
-            log.info("ZDNet 코리아 크롤링 시작");
+            log.info("MBC 뉴스 크롤링 시작");
             
-            String url = "https://zdnet.co.kr/news/";
+            String url = "https://imnews.imbc.com/rss/news/news_00.xml";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
+                    .parser(org.jsoup.parser.Parser.xmlParser())
                     .get();
 
-            Elements newsItems = doc.select(".news-list .news-item");
+            Elements items = doc.select("item");
             
-            for (Element item : newsItems) {
+            for (Element item : items) {
                 try {
-                    Element titleElement = item.selectFirst(".news-title a");
-                    Element summaryElement = item.selectFirst(".news-summary");
-                    Element imageElement = item.selectFirst(".news-thumb img");
+                    String title = item.selectFirst("title").text().trim();
+                    String link = item.selectFirst("link").text().trim();
+                    String description = item.selectFirst("description") != null ? 
+                            item.selectFirst("description").text().trim() : "";
                     
-                    if (titleElement != null) {
-                        String title = titleElement.text().trim();
-                        String link = titleElement.attr("abs:href");
-                        String summary = summaryElement != null ? summaryElement.text().trim() : "";
-                        String imageUrl = imageElement != null ? imageElement.attr("abs:src") : getDefaultImageUrl("IT");
+                    if (!title.isEmpty()) {
+                        // 이미지 추출 시도
+                        String imageUrl = extractImageFromRSS(item);
+                        if (imageUrl == null) {
+                            imageUrl = extractImageFromArticle(link);
+                        }
+                        if (imageUrl == null) {
+                            imageUrl = getDefaultImageUrl("뉴스");
+                        }
                         
                         Article article = Article.builder()
                                 .title(title)
-                                .summary(summary.length() > 300 ? summary.substring(0, 300) + "..." : summary)
-                                .source("ZDNet 코리아")
-                                .category("IT")
+                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
+                                .source("MBC 뉴스")
+                                .category("종합")
                                 .link(link)
                                 .imageUrl(imageUrl)
                                 .publishedAt(LocalDateTime.now())
@@ -187,50 +193,60 @@ public class NewsCrawler {
                         if (articles.size() >= 10) break;
                     }
                 } catch (Exception e) {
-                    log.warn("ZDNet 개별 아이템 파싱 실패: {}", e.getMessage());
+                    log.warn("MBC 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
                 }
             }
             
-            log.info("ZDNet 코리아 크롤링 완료: {}개 기사", articles.size());
+            log.info("MBC 뉴스 크롤링 완료: {}개 기사", articles.size());
             
         } catch (Exception e) {
-            log.error("ZDNet 코리아 크롤링 실패: {}", e.getMessage());
+            log.error("MBC 뉴스 크롤링 실패: {}", e.getMessage());
         }
         
         return articles;
     }
 
     /**
-     * BBC 뉴스 크롤링 (글로벌)
+     * KBS 뉴스 크롤링 (RSS 사용)
      */
     public List<Article> crawlBBCNews() {
         List<Article> articles = new ArrayList<>();
         try {
-            log.info("BBC 뉴스 크롤링 시작");
+            log.info("KBS 뉴스 크롤링 시작");
             
-            String url = "https://www.bbc.com/news/technology";
+            String url = "https://world.kbs.co.kr/rss/rss_news.htm?lang=k";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
+                    .parser(org.jsoup.parser.Parser.xmlParser())
                     .get();
 
-            Elements newsItems = doc.select("[data-testid=\"card-headline\"]");
+            Elements items = doc.select("item");
             
-            for (Element item : newsItems) {
+            for (Element item : items) {
                 try {
-                    Element titleElement = item.selectFirst("h2");
+                    String title = item.selectFirst("title").text().trim();
+                    String link = item.selectFirst("link").text().trim();
+                    String description = item.selectFirst("description") != null ? 
+                            item.selectFirst("description").text().trim() : "";
                     
-                    if (titleElement != null) {
-                        String title = titleElement.text().trim();
-                        String link = "https://www.bbc.com" + item.attr("href");
+                    if (!title.isEmpty()) {
+                        // 이미지 추출 시도
+                        String imageUrl = extractImageFromRSS(item);
+                        if (imageUrl == null) {
+                            imageUrl = extractImageFromArticle(link);
+                        }
+                        if (imageUrl == null) {
+                            imageUrl = getDefaultImageUrl("뉴스");
+                        }
                         
                         Article article = Article.builder()
                                 .title(title)
-                                .summary("BBC Technology News")
-                                .source("BBC News")
-                                .category("글로벌 기술")
+                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
+                                .source("KBS 뉴스")
+                                .category("종합")
                                 .link(link)
-                                .imageUrl(getDefaultImageUrl("글로벌"))
+                                .imageUrl(imageUrl)
                                 .publishedAt(LocalDateTime.now())
                                 .build();
                         
@@ -239,14 +255,14 @@ public class NewsCrawler {
                         if (articles.size() >= 10) break;
                     }
                 } catch (Exception e) {
-                    log.warn("BBC 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
+                    log.warn("KBS 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
                 }
             }
             
-            log.info("BBC 뉴스 크롤링 완료: {}개 기사", articles.size());
+            log.info("KBS 뉴스 크롤링 완료: {}개 기사", articles.size());
             
         } catch (Exception e) {
-            log.error("BBC 뉴스 크롤링 실패: {}", e.getMessage());
+            log.error("KBS 뉴스 크롤링 실패: {}", e.getMessage());
         }
         
         return articles;
