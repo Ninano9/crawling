@@ -45,13 +45,22 @@ public class NewsCrawler {
                             item.selectFirst("description").text().trim() : "";
                     
                     if (!title.isEmpty()) {
+                        // 이미지 추출 시도
+                        String imageUrl = extractImageFromRSS(item);
+                        if (imageUrl == null) {
+                            imageUrl = extractImageFromArticle(link);
+                        }
+                        if (imageUrl == null) {
+                            imageUrl = getDefaultImageUrl("뉴스");
+                        }
+                        
                         Article article = Article.builder()
                                 .title(title)
                                 .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
                                 .source("네이버 뉴스")
                                 .category("종합")
                                 .link(link)
-                                .imageUrl(getDefaultImageUrl("뉴스"))
+                                .imageUrl(imageUrl)
                                 .publishedAt(LocalDateTime.now())
                                 .build();
                         
@@ -98,13 +107,22 @@ public class NewsCrawler {
                             item.selectFirst("description").text().trim() : "";
                     
                     if (!title.isEmpty()) {
+                        // 이미지 추출 시도
+                        String imageUrl = extractImageFromRSS(item);
+                        if (imageUrl == null) {
+                            imageUrl = extractImageFromArticle(link);
+                        }
+                        if (imageUrl == null) {
+                            imageUrl = getDefaultImageUrl("뉴스");
+                        }
+                        
                         Article article = Article.builder()
                                 .title(title)
                                 .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
                                 .source("YTN 뉴스")
                                 .category("종합")
                                 .link(link)
-                                .imageUrl(getDefaultImageUrl("뉴스"))
+                                .imageUrl(imageUrl)
                                 .publishedAt(LocalDateTime.now())
                                 .build();
                         
@@ -259,13 +277,22 @@ public class NewsCrawler {
                             item.selectFirst("description").text().trim() : "";
                     
                     if (!title.isEmpty()) {
+                        // 이미지 추출 시도
+                        String imageUrl = extractImageFromRSS(item);
+                        if (imageUrl == null) {
+                            imageUrl = extractImageFromArticle(link);
+                        }
+                        if (imageUrl == null) {
+                            imageUrl = getDefaultImageUrl("뉴스");
+                        }
+                        
                         Article article = Article.builder()
                                 .title(title)
                                 .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
                                 .source("SBS 뉴스")
                                 .category("종합")
                                 .link(link)
-                                .imageUrl(getDefaultImageUrl("뉴스"))
+                                .imageUrl(imageUrl)
                                 .publishedAt(LocalDateTime.now())
                                 .build();
                         
@@ -285,6 +312,101 @@ public class NewsCrawler {
         }
         
         return articles;
+    }
+
+    /**
+     * RSS 피드에서 이미지 추출
+     */
+    private String extractImageFromRSS(Element item) {
+        try {
+            // enclosure 태그에서 이미지 찾기
+            Element enclosure = item.selectFirst("enclosure[type*=image]");
+            if (enclosure != null) {
+                return enclosure.attr("url");
+            }
+            
+            // media:thumbnail 또는 media:content 찾기
+            Element mediaThumbnail = item.selectFirst("media|thumbnail, thumbnail");
+            if (mediaThumbnail != null) {
+                return mediaThumbnail.attr("url");
+            }
+            
+            Element mediaContent = item.selectFirst("media|content[type*=image], content[type*=image]");
+            if (mediaContent != null) {
+                return mediaContent.attr("url");
+            }
+            
+            // description 안의 img 태그 찾기
+            Element description = item.selectFirst("description");
+            if (description != null) {
+                String descText = description.text();
+                Document descDoc = Jsoup.parse(descText);
+                Element img = descDoc.selectFirst("img");
+                if (img != null) {
+                    return img.attr("src");
+                }
+            }
+            
+        } catch (Exception e) {
+            log.debug("RSS에서 이미지 추출 실패: {}", e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * 기사 페이지에서 이미지 추출
+     */
+    private String extractImageFromArticle(String articleUrl) {
+        try {
+            log.debug("기사 페이지에서 이미지 추출 시도: {}", articleUrl);
+            
+            Document doc = Jsoup.connect(articleUrl)
+                    .userAgent(USER_AGENT)
+                    .timeout(10000) // 짧은 타임아웃
+                    .get();
+            
+            // Open Graph 이미지 우선
+            Element ogImage = doc.selectFirst("meta[property=og:image]");
+            if (ogImage != null && !ogImage.attr("content").isEmpty()) {
+                return ogImage.attr("content");
+            }
+            
+            // Twitter Card 이미지
+            Element twitterImage = doc.selectFirst("meta[name=twitter:image]");
+            if (twitterImage != null && !twitterImage.attr("content").isEmpty()) {
+                return twitterImage.attr("content");
+            }
+            
+            // 기사 본문의 첫 번째 이미지
+            Element firstImg = doc.selectFirst("article img, .article img, .news-content img, .content img, main img");
+            if (firstImg != null && !firstImg.attr("src").isEmpty()) {
+                String src = firstImg.attr("src");
+                // 상대경로면 절대경로로 변환
+                if (src.startsWith("/")) {
+                    String baseUrl = articleUrl.substring(0, articleUrl.indexOf("/", 8));
+                    src = baseUrl + src;
+                }
+                return src;
+            }
+            
+            // 아무 이미지나 찾기 (크기 필터링)
+            Elements allImages = doc.select("img[src]");
+            for (Element img : allImages) {
+                String src = img.attr("src");
+                if (src.contains("logo") || src.contains("icon") || src.contains("btn")) {
+                    continue; // 로고나 아이콘 제외
+                }
+                if (src.startsWith("/")) {
+                    String baseUrl = articleUrl.substring(0, articleUrl.indexOf("/", 8));
+                    src = baseUrl + src;
+                }
+                return src;
+            }
+            
+        } catch (Exception e) {
+            log.debug("기사 페이지 이미지 추출 실패: {}", e.getMessage());
+        }
+        return null;
     }
 
     /**
