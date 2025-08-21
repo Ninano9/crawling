@@ -18,7 +18,7 @@ COPY src ./src
 RUN gradle bootJar --no-daemon
 
 # 런타임 이미지
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:17-jre-alpine
 
 # 작업 디렉토리 설정
 WORKDIR /app
