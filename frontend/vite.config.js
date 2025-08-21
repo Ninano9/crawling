@@ -9,7 +9,9 @@ export default defineConfig({
   },
   preview: {
     port: 5000,
-    host: true
+    host: true,
+    strictPort: true,
+    allowedHosts: ['crawling-jejy.onrender.com', 'localhost', '127.0.0.1']
   },
   build: {
     outDir: 'dist',
