@@ -94,11 +94,10 @@ public class CrawlerService {
         List<Article> articles = new ArrayList<>();
         
         switch (source.toLowerCase()) {
-            case "naver", "네이버" -> articles = newsCrawler.crawlNaverNews();
-            case "daum", "다음" -> articles = newsCrawler.crawlDaumNews();
-            case "zdnet" -> articles = newsCrawler.crawlZDNetKorea();
-            case "bbc" -> articles = newsCrawler.crawlBBCNews();
-            case "sports", "스포츠" -> articles = newsCrawler.crawlSportsNews();
+            case "naver", "네이버", "한겨레" -> articles = newsCrawler.crawlNaverNews();
+            case "daum", "다음", "오마이뉴스" -> articles = newsCrawler.crawlDaumNews();
+            case "zdnet", "mbc" -> articles = newsCrawler.crawlZDNetKorea();
+            case "sports", "스포츠", "sbs" -> articles = newsCrawler.crawlSportsNews();
             default -> {
                 log.warn("지원하지 않는 소스: {}", source);
                 return articles;
