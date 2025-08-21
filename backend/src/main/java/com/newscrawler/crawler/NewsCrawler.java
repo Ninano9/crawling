@@ -27,8 +27,8 @@ public class NewsCrawler {
         try {
             log.info("네이버 뉴스 크롤링 시작");
             
-            // 네이버 뉴스 RSS 피드 사용 (헤드라인)
-            String url = "https://rss.news.naver.com/services/rss/AllHeadLines_Politics.xml";
+            // 한겨레 RSS 피드 사용 (더 안정적)
+            String url = "https://www.hani.co.kr/rss/";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
@@ -57,7 +57,7 @@ public class NewsCrawler {
                         Article article = Article.builder()
                                 .title(title)
                                 .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
-                                .source("네이버 뉴스")
+                                .source("한겨레")
                                 .category("종합")
                                 .link(link)
                                 .imageUrl(imageUrl)
@@ -73,10 +73,10 @@ public class NewsCrawler {
                 }
             }
             
-            log.info("네이버 뉴스 크롤링 완료: {}개 기사", articles.size());
+            log.info("한겨레 뉴스 크롤링 완료: {}개 기사", articles.size());
             
         } catch (Exception e) {
-            log.error("네이버 뉴스 크롤링 실패: {}", e.getMessage());
+            log.error("한겨레 뉴스 크롤링 실패: {}", e.getMessage());
         }
         
         return articles;
@@ -88,9 +88,9 @@ public class NewsCrawler {
     public List<Article> crawlDaumNews() {
         List<Article> articles = new ArrayList<>();
         try {
-            log.info("YTN 뉴스 크롤링 시작");
+            log.info("오마이뉴스 크롤링 시작");
             
-            String url = "https://www.ytn.co.kr/_rss/news_major.xml";
+            String url = "http://www.ohmynews.com/rss/index.xml";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
@@ -119,7 +119,7 @@ public class NewsCrawler {
                         Article article = Article.builder()
                                 .title(title)
                                 .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
-                                .source("YTN 뉴스")
+                                .source("오마이뉴스")
                                 .category("종합")
                                 .link(link)
                                 .imageUrl(imageUrl)
@@ -135,10 +135,10 @@ public class NewsCrawler {
                 }
             }
             
-            log.info("YTN 뉴스 크롤링 완료: {}개 기사", articles.size());
+            log.info("오마이뉴스 크롤링 완료: {}개 기사", articles.size());
             
         } catch (Exception e) {
-            log.error("YTN 뉴스 크롤링 실패: {}", e.getMessage());
+            log.error("오마이뉴스 크롤링 실패: {}", e.getMessage());
         }
         
         return articles;
@@ -206,67 +206,7 @@ public class NewsCrawler {
         return articles;
     }
 
-    /**
-     * KBS 뉴스 크롤링 (RSS 사용)
-     */
-    public List<Article> crawlBBCNews() {
-        List<Article> articles = new ArrayList<>();
-        try {
-            log.info("KBS 뉴스 크롤링 시작");
-            
-            String url = "https://world.kbs.co.kr/rss/rss_news.htm?lang=k";
-            Document doc = Jsoup.connect(url)
-                    .userAgent(USER_AGENT)
-                    .timeout(TIMEOUT)
-                    .parser(org.jsoup.parser.Parser.xmlParser())
-                    .get();
 
-            Elements items = doc.select("item");
-            
-            for (Element item : items) {
-                try {
-                    String title = item.selectFirst("title").text().trim();
-                    String link = item.selectFirst("link").text().trim();
-                    String description = item.selectFirst("description") != null ? 
-                            item.selectFirst("description").text().trim() : "";
-                    
-                    if (!title.isEmpty()) {
-                        // 이미지 추출 시도
-                        String imageUrl = extractImageFromRSS(item);
-                        if (imageUrl == null) {
-                            imageUrl = extractImageFromArticle(link);
-                        }
-                        if (imageUrl == null) {
-                            imageUrl = getDefaultImageUrl("뉴스");
-                        }
-                        
-                        Article article = Article.builder()
-                                .title(title)
-                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
-                                .source("KBS 뉴스")
-                                .category("종합")
-                                .link(link)
-                                .imageUrl(imageUrl)
-                                .publishedAt(LocalDateTime.now())
-                                .build();
-                        
-                        articles.add(article);
-                        
-                        if (articles.size() >= 10) break;
-                    }
-                } catch (Exception e) {
-                    log.warn("KBS 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
-                }
-            }
-            
-            log.info("KBS 뉴스 크롤링 완료: {}개 기사", articles.size());
-            
-        } catch (Exception e) {
-            log.error("KBS 뉴스 크롤링 실패: {}", e.getMessage());
-        }
-        
-        return articles;
-    }
 
     /**
      * SBS 뉴스 크롤링 (RSS 사용)

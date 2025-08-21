@@ -49,12 +49,11 @@ public class CrawlerService {
     public int crawlAllSites() {
         List<CompletableFuture<List<Article>>> futures = new ArrayList<>();
 
-        // 5개 사이트 병렬 크롤링
-        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlNaverNews, executor));
-        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlDaumNews, executor));
-        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlZDNetKorea, executor));
-        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlBBCNews, executor));
-        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlSportsNews, executor));
+        // 4개 한국 뉴스 사이트 병렬 크롤링
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlNaverNews, executor));  // 한겨레
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlDaumNews, executor));   // 오마이뉴스
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlZDNetKorea, executor)); // MBC
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlSportsNews, executor)); // SBS
 
         // 모든 크롤링 완료 대기
         List<Article> allArticles = new ArrayList<>();
