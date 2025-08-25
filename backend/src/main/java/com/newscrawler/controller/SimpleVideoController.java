@@ -5,9 +5,17 @@ import com.newscrawler.service.ArticleService;
 import com.newscrawler.service.SimpleVideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -227,6 +235,93 @@ public class SimpleVideoController {
             response.put("success", false);
             response.put("message", "배치 영상 생성 중 오류 발생: " + e.getMessage());
             return ResponseEntity.internalServerError().body(response);
+        }
+    }
+
+    /**
+     * 생성된 파일 목록 조회
+     */
+    @GetMapping("/files")
+    public ResponseEntity<Map<String, Object>> listGeneratedFiles() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Path videosDir = Paths.get("./videos");
+            
+            if (!Files.exists(videosDir)) {
+                response.put("success", true);
+                response.put("message", "생성된 파일이 없습니다.");
+                response.put("files", List.of());
+                return ResponseEntity.ok(response);
+            }
+
+            List<Map<String, Object>> fileList = Files.list(videosDir)
+                .filter(Files::isRegularFile)
+                .map(file -> {
+                    try {
+                        Map<String, Object> fileInfo = new HashMap<>();
+                        fileInfo.put("name", file.getFileName().toString());
+                        fileInfo.put("size", Files.size(file));
+                        fileInfo.put("modified", Files.getLastModifiedTime(file).toString());
+                        return fileInfo;
+                    } catch (Exception e) {
+                        Map<String, Object> errorInfo = new HashMap<>();
+                        errorInfo.put("name", file.getFileName().toString());
+                        errorInfo.put("error", e.getMessage());
+                        return errorInfo;
+                    }
+                })
+                .toList();
+
+            response.put("success", true);
+            response.put("message", "파일 목록 조회 완료");
+            response.put("count", fileList.size());
+            response.put("files", fileList);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("파일 목록 조회 실패", e);
+            response.put("success", false);
+            response.put("message", "파일 목록 조회 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+
+    /**
+     * 파일 다운로드
+     */
+    @GetMapping("/download/{fileName}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
+        try {
+            Path filePath = Paths.get("./videos").resolve(fileName).normalize();
+            
+            if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Resource resource = new FileSystemResource(filePath.toFile());
+            
+            // 파일 확장자에 따른 Content-Type 설정
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                if (fileName.endsWith(".mp4")) {
+                    contentType = "video/mp4";
+                } else if (fileName.endsWith(".mp3")) {
+                    contentType = "audio/mpeg";
+                } else {
+                    contentType = "application/octet-stream";
+                }
+            }
+
+            return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(resource);
+
+        } catch (Exception e) {
+            log.error("파일 다운로드 실패: {}", fileName, e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

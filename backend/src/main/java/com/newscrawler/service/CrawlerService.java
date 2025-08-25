@@ -37,9 +37,18 @@ public class CrawlerService {
             return;
         }
         
-        log.info("===== 일간 뉴스 크롤링 시작 =====");
+        log.info("===== 일간 뉴스 크롤링 시작 (스케줄러) =====");
         crawlAllSites();
-        log.info("===== 일간 뉴스 크롤링 완료 =====");
+        log.info("===== 일간 뉴스 크롤링 완료 (스케줄러) =====");
+    }
+
+    /**
+     * 서버 깨우기용 - 매 30분마다 실행
+     */
+    @Scheduled(fixedRate = 1800000) // 30분 = 30 * 60 * 1000ms
+    public void keepServerAwake() {
+        log.info("서버 상태 체크 - 현재 시간: {}", java.time.LocalDateTime.now());
+        // 단순히 로그만 출력해서 서버가 sleep 모드로 들어가는 것을 방지
     }
 
     /**
