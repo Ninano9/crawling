@@ -60,8 +60,8 @@ public class CrawlerService {
 
         // 다양한 한국 뉴스 사이트 병렬 크롤링
         futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlNaverNews, executor));     // 한겨레
-        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlDaumNews, executor));      // 중앙일보
-        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlZDNetKorea, executor));    // MBC
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlDaumNews, executor));      // 연합뉴스
+        futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlZDNetKorea, executor));    // KBS
         futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlSportsNews, executor));    // SBS
         futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlEntertainmentNews, executor)); // 연예뉴스
         futures.add(CompletableFuture.supplyAsync(newsCrawler::crawlEconomyNews, executor));   // 경제뉴스
@@ -107,8 +107,8 @@ public class CrawlerService {
         
         switch (source.toLowerCase()) {
             case "naver", "네이버", "한겨레" -> articles = newsCrawler.crawlNaverNews();
-            case "daum", "다음", "중앙일보" -> articles = newsCrawler.crawlDaumNews();
-            case "zdnet", "mbc" -> articles = newsCrawler.crawlZDNetKorea();
+            case "daum", "다음", "연합뉴스" -> articles = newsCrawler.crawlDaumNews();
+            case "zdnet", "kbs" -> articles = newsCrawler.crawlZDNetKorea();
             case "sports", "스포츠", "sbs" -> articles = newsCrawler.crawlSportsNews();
             case "entertainment", "연예", "스포츠서울" -> articles = newsCrawler.crawlEntertainmentNews();
             case "economy", "경제", "매일경제" -> articles = newsCrawler.crawlEconomyNews();

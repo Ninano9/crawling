@@ -100,9 +100,9 @@ public class NewsCrawler {
     public List<Article> crawlDaumNews() {
         List<Article> articles = new ArrayList<>();
         try {
-            log.info("중앙일보 크롤링 시작");
+            log.info("연합뉴스 크롤링 시작");
             
-            String url = "https://news.joins.com/RSS/total.xml";
+            String url = "https://www.yna.co.kr/rss/allnews.xml";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
@@ -138,7 +138,7 @@ public class NewsCrawler {
                         Article article = Article.builder()
                                 .title(cleanTitle)
                                 .summary(cleanDescription)
-                                .source("중앙일보")
+                                .source("연합뉴스")
                                 .category("종합")
                                 .link(link)
                                 .imageUrl(imageUrl)
@@ -169,9 +169,9 @@ public class NewsCrawler {
     public List<Article> crawlZDNetKorea() {
         List<Article> articles = new ArrayList<>();
         try {
-            log.info("MBC 뉴스 크롤링 시작");
+            log.info("KBS 뉴스 크롤링 시작");
             
-            String url = "https://imnews.imbc.com/rss/news/news_00.xml";
+            String url = "https://world.kbs.co.kr/rss/rss_news.htm";
             Document doc = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .timeout(TIMEOUT)
@@ -207,7 +207,7 @@ public class NewsCrawler {
                         Article article = Article.builder()
                                 .title(cleanTitle)
                                 .summary(cleanDescription)
-                                .source("MBC 뉴스")
+                                .source("KBS 뉴스")
                                 .category("종합")
                                 .link(link)
                                 .imageUrl(imageUrl)
@@ -219,14 +219,14 @@ public class NewsCrawler {
                         if (articles.size() >= 10) break;
                     }
                 } catch (Exception e) {
-                    log.warn("MBC 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
+                    log.warn("KBS 뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
                 }
             }
             
-            log.info("MBC 뉴스 크롤링 완료: {}개 기사", articles.size());
+            log.info("KBS 뉴스 크롤링 완료: {}개 기사", articles.size());
             
         } catch (Exception e) {
-            log.error("MBC 뉴스 크롤링 실패: {}", e.getMessage());
+            log.error("KBS 뉴스 크롤링 실패: {}", e.getMessage());
         }
         
         return articles;
