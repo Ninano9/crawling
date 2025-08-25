@@ -19,10 +19,10 @@ RUN ./gradlew clean bootJar --no-daemon || \
 FROM eclipse-temurin:17-jre-alpine
 
 # 필요한 패키지 설치 (Python, FFmpeg, curl)
-RUN apk add --no-cache python3 py3-pip ffmpeg curl
+RUN apk add --no-cache python3 py3-pip ffmpeg curl python3-dev
 
-# Edge-TTS 설치
-RUN pip3 install edge-tts
+# Edge-TTS 설치 (가상환경 없이)
+RUN pip3 install edge-tts --break-system-packages
 
 # 작업 디렉토리 설정
 WORKDIR /app

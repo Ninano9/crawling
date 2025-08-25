@@ -108,7 +108,7 @@ public class ArticleController {
     public ResponseEntity<ArticleResponseDto> getArticleById(@PathVariable Long id) {
         log.info("기사 상세 조회 - id: {}", id);
         
-        ArticleResponseDto response = articleService.getArticleById(id);
+        ArticleResponseDto response = articleService.getArticleDtoById(id);
         return ResponseEntity.ok(response);
     }
 

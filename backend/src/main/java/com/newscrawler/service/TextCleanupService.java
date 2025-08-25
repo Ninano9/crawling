@@ -92,8 +92,8 @@ public class TextCleanupService {
             .replace("&ndash;", "–")
             .replace("&mdash;", "—")
             
-            // 나머지 숫자 엔티티 (&#숫자; 형태)
-            .replaceAll("&#(\\d+);", this::convertNumericEntity);
+            // 나머지 숫자 엔티티는 공백으로 대체 (간단하게)
+            .replaceAll("&#\\d+;", " ");
     }
 
     /**
