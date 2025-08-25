@@ -399,6 +399,213 @@ public class NewsCrawler {
     }
 
     /**
+     * 연예뉴스 크롤링 (연합뉴스 연예)
+     */
+    public List<Article> crawlEntertainmentNews() {
+        List<Article> articles = new ArrayList<>();
+        try {
+            log.info("연예뉴스 크롤링 시작");
+            
+            String url = "https://www.yna.co.kr/rss/entertainment.xml";
+            Document doc = Jsoup.connect(url)
+                    .userAgent(USER_AGENT)
+                    .timeout(TIMEOUT)
+                    .parser(org.jsoup.parser.Parser.xmlParser())
+                    .get();
+
+            Elements items = doc.select("item");
+            
+            for (Element item : items) {
+                try {
+                    String title = item.selectFirst("title").text().trim();
+                    String link = item.selectFirst("link").text().trim();
+                    String description = item.selectFirst("description") != null ? 
+                            item.selectFirst("description").text().trim() : "";
+                    
+                    if (!title.isEmpty()) {
+                        // 이미지 추출 시도
+                        String imageUrl = extractImageFromRSS(item);
+                        if (imageUrl == null) {
+                            imageUrl = extractImageFromArticle(link);
+                        }
+                        if (imageUrl == null) {
+                            imageUrl = getDefaultImageUrl("연예");
+                        }
+                        
+                        // 텍스트 정리 적용
+                        String cleanTitle = textCleanupService.cleanTitle(title);
+                        String cleanDescription = textCleanupService.cleanSummary(description);
+                        if (cleanDescription.length() > 300) {
+                            cleanDescription = cleanDescription.substring(0, 300) + "...";
+                        }
+                        
+                        Article article = Article.builder()
+                                .title(cleanTitle)
+                                .summary(cleanDescription)
+                                .source("연합뉴스")
+                                .category("연예")
+                                .link(link)
+                                .imageUrl(imageUrl)
+                                .publishedAt(LocalDateTime.now())
+                                .build();
+                        
+                        articles.add(article);
+                        
+                        if (articles.size() >= 10) break;
+                    }
+                } catch (Exception e) {
+                    log.warn("연예뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
+                }
+            }
+            
+            log.info("연예뉴스 크롤링 완료: {}개 기사", articles.size());
+            
+        } catch (Exception e) {
+            log.error("연예뉴스 크롤링 실패: {}", e.getMessage());
+        }
+        
+        return articles;
+    }
+
+    /**
+     * 경제뉴스 크롤링 (매일경제)
+     */
+    public List<Article> crawlEconomyNews() {
+        List<Article> articles = new ArrayList<>();
+        try {
+            log.info("경제뉴스 크롤링 시작");
+            
+            String url = "https://www.mk.co.kr/rss/30000001/";
+            Document doc = Jsoup.connect(url)
+                    .userAgent(USER_AGENT)
+                    .timeout(TIMEOUT)
+                    .parser(org.jsoup.parser.Parser.xmlParser())
+                    .get();
+
+            Elements items = doc.select("item");
+            
+            for (Element item : items) {
+                try {
+                    String title = item.selectFirst("title").text().trim();
+                    String link = item.selectFirst("link").text().trim();
+                    String description = item.selectFirst("description") != null ? 
+                            item.selectFirst("description").text().trim() : "";
+                    
+                    if (!title.isEmpty()) {
+                        // 이미지 추출 시도
+                        String imageUrl = extractImageFromRSS(item);
+                        if (imageUrl == null) {
+                            imageUrl = extractImageFromArticle(link);
+                        }
+                        if (imageUrl == null) {
+                            imageUrl = getDefaultImageUrl("경제");
+                        }
+                        
+                        // 텍스트 정리 적용
+                        String cleanTitle = textCleanupService.cleanTitle(title);
+                        String cleanDescription = textCleanupService.cleanSummary(description);
+                        if (cleanDescription.length() > 300) {
+                            cleanDescription = cleanDescription.substring(0, 300) + "...";
+                        }
+                        
+                        Article article = Article.builder()
+                                .title(cleanTitle)
+                                .summary(cleanDescription)
+                                .source("매일경제")
+                                .category("경제")
+                                .link(link)
+                                .imageUrl(imageUrl)
+                                .publishedAt(LocalDateTime.now())
+                                .build();
+                        
+                        articles.add(article);
+                        
+                        if (articles.size() >= 10) break;
+                    }
+                } catch (Exception e) {
+                    log.warn("경제뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
+                }
+            }
+            
+            log.info("경제뉴스 크롤링 완료: {}개 기사", articles.size());
+            
+        } catch (Exception e) {
+            log.error("경제뉴스 크롤링 실패: {}", e.getMessage());
+        }
+        
+        return articles;
+    }
+
+    /**
+     * 스포츠뉴스 크롤링 (스포츠조선)
+     */
+    public List<Article> crawlSportsNewsExtra() {
+        List<Article> articles = new ArrayList<>();
+        try {
+            log.info("스포츠뉴스 크롤링 시작");
+            
+            String url = "http://sports.chosun.com/rss/sports.xml";
+            Document doc = Jsoup.connect(url)
+                    .userAgent(USER_AGENT)
+                    .timeout(TIMEOUT)
+                    .parser(org.jsoup.parser.Parser.xmlParser())
+                    .get();
+
+            Elements items = doc.select("item");
+            
+            for (Element item : items) {
+                try {
+                    String title = item.selectFirst("title").text().trim();
+                    String link = item.selectFirst("link").text().trim();
+                    String description = item.selectFirst("description") != null ? 
+                            item.selectFirst("description").text().trim() : "";
+                    
+                    if (!title.isEmpty()) {
+                        // 이미지 추출 시도
+                        String imageUrl = extractImageFromRSS(item);
+                        if (imageUrl == null) {
+                            imageUrl = extractImageFromArticle(link);
+                        }
+                        if (imageUrl == null) {
+                            imageUrl = getDefaultImageUrl("스포츠");
+                        }
+                        
+                        // 텍스트 정리 적용
+                        String cleanTitle = textCleanupService.cleanTitle(title);
+                        String cleanDescription = textCleanupService.cleanSummary(description);
+                        if (cleanDescription.length() > 300) {
+                            cleanDescription = cleanDescription.substring(0, 300) + "...";
+                        }
+                        
+                        Article article = Article.builder()
+                                .title(cleanTitle)
+                                .summary(cleanDescription)
+                                .source("스포츠조선")
+                                .category("스포츠")
+                                .link(link)
+                                .imageUrl(imageUrl)
+                                .publishedAt(LocalDateTime.now())
+                                .build();
+                        
+                        articles.add(article);
+                        
+                        if (articles.size() >= 10) break;
+                    }
+                } catch (Exception e) {
+                    log.warn("스포츠뉴스 개별 아이템 파싱 실패: {}", e.getMessage());
+                }
+            }
+            
+            log.info("스포츠뉴스 크롤링 완료: {}개 기사", articles.size());
+            
+        } catch (Exception e) {
+            log.error("스포츠뉴스 크롤링 실패: {}", e.getMessage());
+        }
+        
+        return articles;
+    }
+
+    /**
      * 기본 이미지 URL 반환
      */
     private String getDefaultImageUrl(String category) {
@@ -406,6 +613,8 @@ public class NewsCrawler {
             case "it", "디지털" -> "https://via.placeholder.com/300x200/0066CC/FFFFFF?text=IT+뉴스";
             case "글로벌" -> "https://via.placeholder.com/300x200/009900/FFFFFF?text=Global+News";
             case "스포츠" -> "https://via.placeholder.com/300x200/FF6600/FFFFFF?text=스포츠+뉴스";
+            case "연예" -> "https://via.placeholder.com/300x200/FF1493/FFFFFF?text=연예+뉴스";
+            case "경제" -> "https://via.placeholder.com/300x200/228B22/FFFFFF?text=경제+뉴스";
             case "뉴스", "종합" -> "https://via.placeholder.com/300x200/CC3333/FFFFFF?text=한국+뉴스";
             default -> "https://via.placeholder.com/300x200/666666/FFFFFF?text=뉴스";
         };
