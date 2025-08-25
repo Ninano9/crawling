@@ -5,11 +5,7 @@ import com.newscrawler.entity.Article;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.encode.AudioAttributes;
-import ws.schild.jave.encode.EncodingAttributes;
-import ws.schild.jave.encode.VideoAttributes;
+// JAVE 라이브러리 대신 FFmpeg 직접 사용
 
 import java.io.File;
 import java.io.IOException;

@@ -187,12 +187,27 @@ public class ArticleService {
     }
 
     /**
-     * 기사 상세 조회
+     * 기사 상세 조회 (DTO 반환)
      */
-    public ArticleResponseDto getArticleById(Long id) {
+    public ArticleResponseDto getArticleDtoById(Long id) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("기사를 찾을 수 없습니다: " + id));
         
         return ArticleResponseDto.from(article);
+    }
+
+    /**
+     * 오늘의 기사 조회 (Article 엔티티 리스트 반환)
+     */
+    public List<Article> getTodayArticles() {
+        return articleRepository.findTodaysArticles();
+    }
+
+    /**
+     * ID로 기사 조회 (Article 엔티티 반환)
+     */
+    public Article getArticleById(Long id) {
+        return articleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("기사를 찾을 수 없습니다: " + id));
     }
 }
