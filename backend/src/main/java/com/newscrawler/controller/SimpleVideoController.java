@@ -148,4 +148,85 @@ public class SimpleVideoController {
             return ResponseEntity.internalServerError().body(response);
         }
     }
+
+    /**
+     * 완전한 영상 생성 테스트 (기사 → 스크립트 → TTS → 영상)
+     */
+    @PostMapping("/generate-video/{articleId}")
+    public ResponseEntity<Map<String, Object>> generateCompleteVideo(@PathVariable Long articleId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.info("기사 ID {}로 완전한 영상 생성 요청", articleId);
+
+            // 기사 조회
+            Article article = articleService.getArticleById(articleId);
+            
+            // 완전한 영상 생성 (음성 + 이미지 → MP4)
+            String videoResult = simpleVideoService.generateCompleteVideo(article);
+            
+            response.put("success", true);
+            response.put("message", "완전한 영상 생성 완료");
+            response.put("articleTitle", article.getTitle());
+            response.put("videoResult", videoResult);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("완전한 영상 생성 실패", e);
+            response.put("success", false);
+            response.put("message", "완전한 영상 생성 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+
+    /**
+     * 오늘의 모든 기사로 영상 생성 (배치)
+     */
+    @PostMapping("/generate-videos/today")
+    public ResponseEntity<Map<String, Object>> generateVideosForTodayArticles() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.info("오늘의 모든 기사로 영상 생성 요청");
+
+            List<Article> todayArticles = articleService.getTodayArticles();
+            
+            if (todayArticles.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "오늘 수집된 기사가 없습니다.");
+                return ResponseEntity.ok(response);
+            }
+
+            int successCount = 0;
+            int failCount = 0;
+
+            // 처음 3개 기사만 테스트 (시간 단축)
+            for (Article article : todayArticles.stream().limit(3).toList()) {
+                try {
+                    String videoResult = simpleVideoService.generateCompleteVideo(article);
+                    successCount++;
+                    log.info("영상 생성 성공: {} - {}", article.getTitle(), videoResult);
+                    
+                } catch (Exception e) {
+                    failCount++;
+                    log.error("영상 생성 실패: {}", article.getTitle(), e);
+                }
+            }
+
+            response.put("success", true);
+            response.put("message", String.format("영상 생성 완료: 성공 %d개, 실패 %d개", successCount, failCount));
+            response.put("totalArticles", Math.min(3, todayArticles.size()));
+            response.put("successCount", successCount);
+            response.put("failCount", failCount);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("배치 영상 생성 실패", e);
+            response.put("success", false);
+            response.put("message", "배치 영상 생성 중 오류 발생: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
 }

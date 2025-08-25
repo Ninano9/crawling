@@ -98,40 +98,45 @@ public class VideoGenerationService {
         File outputFile = outputDir.resolve(fileName).toFile();
 
         try {
-            // FFmpeg를 사용한 영상 생성
-            // 이미지 + 음성을 결합하여 MP4 생성
-            ProcessBuilder processBuilder = new ProcessBuilder();
+            log.info("영상 생성 시작: {}", outputFile.getName());
             
-            String imageUrl = article.getImageUrl();
-            if (imageUrl == null || imageUrl.isEmpty()) {
-                imageUrl = getDefaultImagePath();
-            }
-
-            // FFmpeg 명령어 구성
+            // 이미지 파일 준비
+            File imageFile = prepareImageFile(article);
+            
+            // FFmpeg 명령어 구성 (세로형 숏폼)
+            ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.command(
                 "ffmpeg", "-y",
                 "-loop", "1",
-                "-i", downloadImageIfNeeded(imageUrl),
+                "-i", imageFile.getAbsolutePath(),
                 "-i", audioFile.getAbsolutePath(),
                 "-c:v", "libx264",
                 "-tune", "stillimage",
                 "-c:a", "aac",
                 "-b:a", "192k",
                 "-pix_fmt", "yuv420p",
-                "-vf", String.format("scale=%s", videoConfig.getResolution().replace("x", ":")),
+                "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+                "-r", "30",
                 "-shortest",
                 "-fflags", "+shortest",
                 "-max_interleave_delta", "100M",
                 outputFile.getAbsolutePath()
             );
 
+            log.info("FFmpeg 명령어 실행 중...");
             Process process = processBuilder.start();
+            
+            // 출력 스트림 읽기 (에러 디버깅용)
+            process.getInputStream().transferTo(System.out);
+            process.getErrorStream().transferTo(System.err);
+            
             int exitCode = process.waitFor();
 
             if (exitCode != 0) {
                 throw new RuntimeException("FFmpeg 실행 실패: " + exitCode);
             }
 
+            log.info("영상 생성 완료: {} (크기: {}bytes)", outputFile.getName(), outputFile.length());
             return outputFile;
 
         } catch (Exception e) {
@@ -141,23 +146,92 @@ public class VideoGenerationService {
     }
 
     /**
-     * 이미지 URL에서 로컬 파일로 다운로드 (필요시)
+     * 기사 이미지 파일 준비 (다운로드 또는 기본 이미지)
      */
-    private String downloadImageIfNeeded(String imageUrl) throws IOException {
-        if (imageUrl.startsWith("http")) {
-            // TODO: 이미지 다운로드 로직 구현
-            // 현재는 기본 이미지 사용
-            return getDefaultImagePath();
+    private File prepareImageFile(Article article) throws IOException {
+        String imageUrl = article.getImageUrl();
+        
+        // 이미지 URL이 있으면 다운로드 시도
+        if (imageUrl != null && imageUrl.startsWith("http")) {
+            try {
+                return downloadImageFromUrl(imageUrl, article.getId());
+            } catch (Exception e) {
+                log.warn("이미지 다운로드 실패, 기본 이미지 사용: {}", e.getMessage());
+                return createDefaultImageFile(article);
+            }
         }
-        return imageUrl;
+        
+        // 기본 이미지 생성
+        return createDefaultImageFile(article);
     }
 
     /**
-     * 기본 이미지 경로 반환
+     * URL에서 이미지 다운로드
      */
-    private String getDefaultImagePath() {
-        // 기본 뉴스 이미지 (프로젝트 리소스에 포함)
-        return "src/main/resources/static/default-news-bg.jpg";
+    private File downloadImageFromUrl(String imageUrl, Long articleId) throws IOException {
+        Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+        String fileName = String.format("news_image_%s.jpg", articleId);
+        File imageFile = tempDir.resolve(fileName).toFile();
+        
+        log.info("이미지 다운로드 중: {}", imageUrl);
+        
+        ProcessBuilder processBuilder = new ProcessBuilder(
+            "curl", "-L", "-o", imageFile.getAbsolutePath(), imageUrl
+        );
+        
+        Process process = processBuilder.start();
+        try {
+            int exitCode = process.waitFor();
+            if (exitCode == 0 && imageFile.exists() && imageFile.length() > 0) {
+                log.info("이미지 다운로드 완료: {} ({}bytes)", imageFile.getName(), imageFile.length());
+                return imageFile;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        throw new IOException("이미지 다운로드 실패");
+    }
+
+    /**
+     * 기본 이미지 파일 생성 (FFmpeg로 단색 배경)
+     */
+    private File createDefaultImageFile(Article article) throws IOException {
+        Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+        String fileName = String.format("default_bg_%s.jpg", article.getId());
+        File imageFile = tempDir.resolve(fileName).toFile();
+        
+        try {
+            log.info("기본 이미지 생성 중...");
+            
+            // FFmpeg로 파란색 배경 이미지 생성
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                "ffmpeg", "-y",
+                "-f", "lavfi",
+                "-i", "color=c=blue:size=1080x1920:duration=1",
+                "-frames:v", "1",
+                imageFile.getAbsolutePath()
+            );
+            
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+            
+            if (exitCode == 0 && imageFile.exists()) {
+                log.info("기본 이미지 생성 완료: {}", imageFile.getName());
+                return imageFile;
+            }
+            
+        } catch (Exception e) {
+            log.warn("FFmpeg 기본 이미지 생성 실패: {}", e.getMessage());
+        }
+        
+        // FFmpeg 실패시 간단한 텍스트 파일 생성 (최후 수단)
+        try {
+            Files.write(imageFile.toPath(), "뉴스 배경".getBytes());
+            return imageFile;
+        } catch (Exception e) {
+            throw new IOException("기본 이미지 생성 불가", e);
+        }
     }
 
     /**
