@@ -21,9 +21,6 @@
           <div class="date-info">
             {{ todayString }}
           </div>
-          <div class="update-info" v-if="lastUpdateTime">
-            마지막 업데이트: {{ lastUpdateTime }}
-          </div>
         </div>
       </div>
     </div>
@@ -31,7 +28,7 @@
 </template>
 
 <script>
-import { getTodayString, formatRelativeTime } from '../utils/dateUtils'
+import { getTodayString } from '../utils/dateUtils'
 
 export default {
   name: 'HeaderComponent',
@@ -55,10 +52,6 @@ export default {
   computed: {
     todayString() {
       return getTodayString()
-    },
-    
-    lastUpdateTime() {
-      return this.lastUpdate ? formatRelativeTime(this.lastUpdate) : null
     }
   },
   
@@ -145,12 +138,6 @@ export default {
 
 .date-info {
   font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.update-info {
-  font-size: 0.8rem;
-  opacity: 0.8;
 }
 
 @media (max-width: 768px) {

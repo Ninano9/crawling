@@ -19,17 +19,13 @@
           <span class="article-source">{{ article.source }}</span>
           <span class="article-category">{{ article.category }}</span>
         </div>
-        
-        <div class="meta-right">
-          <span class="article-time">{{ formatTime(article.publishedAt) }}</span>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { formatRelativeTime } from '../utils/dateUtils'
+// import { formatRelativeTime } from '../utils/dateUtils' // 제거됨
 
 export default {
   name: 'ArticleCard',
@@ -56,10 +52,6 @@ export default {
     
     onImageError(event) {
       event.target.src = this.defaultImage
-    },
-    
-    formatTime(dateString) {
-      return formatRelativeTime(dateString)
     }
   }
 }
@@ -127,10 +119,8 @@ export default {
 
 .article-meta {
   display: flex;
-  justify-content: space-between;
   align-items: flex-end;
   font-size: 0.85rem;
-  gap: 1rem;
   margin-top: auto;
 }
 
@@ -138,10 +128,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-}
-
-.meta-right {
-  text-align: right;
 }
 
 .article-source {
@@ -160,10 +146,7 @@ export default {
   font-size: 0.8rem;
 }
 
-.article-time {
-  color: #999;
-  font-size: 0.8rem;
-}
+
 
 @media (max-width: 768px) {
   .article-content {
@@ -175,13 +158,7 @@ export default {
   }
   
   .article-meta {
-    flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .meta-right {
-    text-align: left;
   }
 }
 </style>
