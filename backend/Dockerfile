@@ -1,27 +1,19 @@
-# Multi-stage build for Java Spring Boot application
+# 빌드 스테이지
 FROM gradle:7.6-jdk17 AS build
 
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# Gradle wrapper와 설정 파일들 복사
-COPY gradlew .
-COPY gradle/ ./gradle/
-COPY build.gradle .
-COPY settings.gradle .
+# 모든 파일 복사 (간단하게)
+COPY . .
 
 # Gradle wrapper 실행 권한 부여
-RUN chmod +x gradlew
+RUN chmod +x gradlew || echo "gradlew not found, using gradle directly"
 
-# 의존성 다운로드 (캐싱 최적화)
-RUN ./gradlew dependencies --no-daemon || echo "Some dependencies may be missing, continuing..."
-
-# 소스 코드 복사
-COPY src ./src
-
-# 애플리케이션 빌드 (더 관대한 빌드)
-RUN ./gradlew bootJar --no-daemon --stacktrace || \
-    ./gradlew build --no-daemon --stacktrace
+# 빌드 실행 (여러 방법 시도)
+RUN ./gradlew clean bootJar --no-daemon || \
+    gradle clean bootJar --no-daemon || \
+    gradle clean build --no-daemon
 
 # 런타임 이미지
 FROM eclipse-temurin:17-jre-alpine

@@ -83,8 +83,8 @@ public class TextCleanupService {
             .replace("&larr;", "←")
             
             // 따옴표
-            .replace("&ldquo;", """)
-            .replace("&rdquo;", """)
+            .replace("&ldquo;", "\"")
+            .replace("&rdquo;", "\"")
             .replace("&lsquo;", "'")
             .replace("&rsquo;", "'")
             
