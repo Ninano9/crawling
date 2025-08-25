@@ -1,6 +1,8 @@
 package com.newscrawler.crawler;
 
 import com.newscrawler.entity.Article;
+import com.newscrawler.service.TextCleanupService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -13,8 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class NewsCrawler {
+
+    private final TextCleanupService textCleanupService;
 
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
     private static final int TIMEOUT = 30000;
@@ -54,9 +59,16 @@ public class NewsCrawler {
                             imageUrl = getDefaultImageUrl("뉴스");
                         }
                         
+                        // 텍스트 정리 적용
+                        String cleanTitle = textCleanupService.cleanTitle(title);
+                        String cleanDescription = textCleanupService.cleanSummary(description);
+                        if (cleanDescription.length() > 300) {
+                            cleanDescription = cleanDescription.substring(0, 300) + "...";
+                        }
+                        
                         Article article = Article.builder()
-                                .title(title)
-                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
+                                .title(cleanTitle)
+                                .summary(cleanDescription)
                                 .source("한겨레")
                                 .category("종합")
                                 .link(link)
@@ -116,9 +128,16 @@ public class NewsCrawler {
                             imageUrl = getDefaultImageUrl("뉴스");
                         }
                         
+                        // 텍스트 정리 적용
+                        String cleanTitle = textCleanupService.cleanTitle(title);
+                        String cleanDescription = textCleanupService.cleanSummary(description);
+                        if (cleanDescription.length() > 300) {
+                            cleanDescription = cleanDescription.substring(0, 300) + "...";
+                        }
+                        
                         Article article = Article.builder()
-                                .title(title)
-                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
+                                .title(cleanTitle)
+                                .summary(cleanDescription)
                                 .source("중앙일보")
                                 .category("종합")
                                 .link(link)
@@ -178,9 +197,16 @@ public class NewsCrawler {
                             imageUrl = getDefaultImageUrl("뉴스");
                         }
                         
+                        // 텍스트 정리 적용
+                        String cleanTitle = textCleanupService.cleanTitle(title);
+                        String cleanDescription = textCleanupService.cleanSummary(description);
+                        if (cleanDescription.length() > 300) {
+                            cleanDescription = cleanDescription.substring(0, 300) + "...";
+                        }
+                        
                         Article article = Article.builder()
-                                .title(title)
-                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
+                                .title(cleanTitle)
+                                .summary(cleanDescription)
                                 .source("MBC 뉴스")
                                 .category("종합")
                                 .link(link)
@@ -242,9 +268,16 @@ public class NewsCrawler {
                             imageUrl = getDefaultImageUrl("뉴스");
                         }
                         
+                        // 텍스트 정리 적용
+                        String cleanTitle = textCleanupService.cleanTitle(title);
+                        String cleanDescription = textCleanupService.cleanSummary(description);
+                        if (cleanDescription.length() > 300) {
+                            cleanDescription = cleanDescription.substring(0, 300) + "...";
+                        }
+                        
                         Article article = Article.builder()
-                                .title(title)
-                                .summary(description.length() > 300 ? description.substring(0, 300) + "..." : description)
+                                .title(cleanTitle)
+                                .summary(cleanDescription)
                                 .source("SBS 뉴스")
                                 .category("종합")
                                 .link(link)
