@@ -3,7 +3,7 @@
     <div class="container">
       <div class="header-content">
         <div class="logo">
-          📰 뉴스 크롤링 블로그
+          📰 뉴스 자동수집 블로그
         </div>
         
         <div class="search-container">
