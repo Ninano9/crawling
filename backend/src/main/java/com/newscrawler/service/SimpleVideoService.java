@@ -26,11 +26,14 @@ public class SimpleVideoService {
         try {
             log.info("===== 간단 TTS 테스트 시작 =====");
             
-            // 임시 파일 생성
+            // videos 폴더에 파일 생성
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String fileName = String.format("simple_tts_%s.mp3", timestamp);
-            Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-            File audioFile = tempDir.resolve(fileName).toFile();
+            Path videosDir = Paths.get("./videos");
+            if (!videosDir.toFile().exists()) {
+                videosDir.toFile().mkdirs();
+            }
+            File audioFile = videosDir.resolve(fileName).toFile();
             
             // Edge-TTS 명령어 실행
             ProcessBuilder processBuilder = new ProcessBuilder(

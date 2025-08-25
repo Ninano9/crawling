@@ -11,19 +11,18 @@ spring:
   
   # 데이터베이스 설정
   datasource:
-    url: ${DATABASE_URL:jdbc:h2:mem:testdb}
+    url: ${DATABASE_URL:jdbc:h2:file:./data/testdb}
     username: ${DB_USERNAME:sa}
-    password: ${DB_PASSWORD:}
+    password: ${DB_PASSWORD:password}
     driver-class-name: ${DB_DRIVER:org.h2.Driver}
   
   # JPA 설정
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:create-drop}
+      ddl-auto: ${DDL_AUTO:update}
     show-sql: ${SHOW_SQL:true}
     properties:
       hibernate:
-        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
         format_sql: true
   
   # H2 콘솔 (로컬 개발용)
@@ -114,7 +113,7 @@ logging:
     org.hibernate.SQL: WARN
 
 cors:
-  allowed-origins: ${FRONTEND_URL:https://your-frontend-url.onrender.com}
+  allowed-origins: ${FRONTEND_URL:https://crawling-jejy.onrender.com}
 
 ---
 # Development 프로파일

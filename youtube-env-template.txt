@@ -1,0 +1,12 @@
+# YouTube API 환경 변수 템플릿
+# 실제 값으로 변경해서 Render에 설정하세요
+
+YOUTUBE_API_KEY=AIzaSyDxxxxxxxxxxxxxxxxxxxxxxxxx
+YOUTUBE_CLIENT_ID=123456789012-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com  
+YOUTUBE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx
+YOUTUBE_REFRESH_TOKEN=1//0Gxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+YOUTUBE_CHANNEL_ID=UCxxxxxxxxxxxxxxxxxxxxxxx
+
+# 추가 설정
+TTS_PROVIDER=edge-tts
+VIDEO_GENERATION_ENABLED=true
