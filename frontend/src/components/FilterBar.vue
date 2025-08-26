@@ -61,7 +61,7 @@
           :disabled="isCrawling"
         >
           <span v-if="isCrawling">🔄 수집 중...</span>
-          <span v-else>🕷️ 수집집 시작</span>
+          <span v-else>🕷️ 수집 시작</span>
         </button>
       </div>
     </div>
@@ -167,16 +167,16 @@ export default {
 }
 
 .filter-button:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: #7a7a7a;
+  color: #7a7a7a;
   transform: translateY(-1px);
 }
 
 .filter-button.active {
-  background: #667eea;
-  border-color: #667eea;
+  background: linear-gradient(135deg, #9d9d9d 0%, #4b4b4b 100%);
+  border-color: #7a7a7a;
   color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(122, 122, 122, 0.3);
 }
 
 .filter-actions {

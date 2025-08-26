@@ -433,9 +433,9 @@ export default {
 
 .pagination-button {
   padding: 0.75rem 1.5rem;
-  border: 2px solid #667eea;
+  border: 2px solid #7a7a7a;
   background: white;
-  color: #667eea;
+  color: #7a7a7a;
   cursor: pointer;
   border-radius: 8px;
   font-weight: 600;
@@ -443,7 +443,7 @@ export default {
 }
 
 .pagination-button:hover:not(:disabled) {
-  background: #667eea;
+  background: linear-gradient(135deg, #9d9d9d 0%, #4b4b4b 100%);
   color: white;
   transform: translateY(-1px);
 }
@@ -485,7 +485,7 @@ export default {
 
 .refresh-button {
   padding: 0.75rem 2rem;
-  background: #667eea;
+  background: linear-gradient(135deg, #9d9d9d 0%, #4b4b4b 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -495,7 +495,7 @@ export default {
 }
 
 .refresh-button:hover {
-  background: #5a67d8;
+  background: linear-gradient(135deg, #8a8a8a 0%, #3a3a3a 100%);
   transform: translateY(-1px);
 }
 
