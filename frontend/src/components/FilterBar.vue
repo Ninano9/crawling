@@ -60,8 +60,8 @@
           @click="startCrawling"
           :disabled="isCrawling"
         >
-          <span v-if="isCrawling">🔄 크롤링 중...</span>
-          <span v-else>🕷️ 크롤링 시작</span>
+          <span v-if="isCrawling">🔄 수집 중...</span>
+          <span v-else>🕷️ 수집집 시작</span>
         </button>
       </div>
     </div>
