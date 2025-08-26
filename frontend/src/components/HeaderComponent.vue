@@ -86,7 +86,7 @@ export default {
 
 <style scoped>
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #9d9d9d 0%, #4b4b4b 100%);
   color: white;
   padding: 1rem 0;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
